@@ -1,51 +1,88 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const UserManagement = () => {
-  const users = [
-    {
-      _id: 123123,
-      name: "John Doe",
-      email: "john@doe.com",
-      role: "admin",
-    },
-  ];
-  const navigate = useNavigate();
-
+  // 🔹 State
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
-    role: "customer", // Default role
+    role: "customer", // Default
   });
 
+  const token = localStorage.getItem("userToken");
+
+  // 🔹 Fetch users on load
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const { data } = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/admin/users`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setUsers(data);
+        setLoading(false);
+      } catch (err) {
+        setError("Failed to load users");
+        setLoading(false);
+      }
+    };
+    fetchUsers();
+  }, [token]);
+
+  // 🔹 Handle form input change
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  // 🔹 Add new user
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
-
-    // Reset the form after Submission
-    setFormData({
-      name: "",
-      email: "",
-      password: "",
-      role: "customer",
-    });
+    try {
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/admin/users`,
+        formData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setUsers([...users, data.user]);
+      setFormData({ name: "", email: "", password: "", role: "customer" });
+    } catch (err) {
+      alert(err.response?.data?.message || "Error creating user");
+    }
   };
 
-  const handleRoleChange = (userId, newRole) => {
-    console.log({ id: userId, role: newRole });
+  // 🔹 Update user role
+  const handleRoleChange = async (userId, newRole) => {
+    try {
+      const { data } = await axios.put(
+        `${import.meta.env.VITE_BACKEND_URL}/api/admin/users/${userId}`,
+        { role: newRole },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setUsers(users.map((u) => (u._id === userId ? data.user : u)));
+    } catch (err) {
+      alert("Error updating role");
+    }
   };
 
-  const handleDeleteUser = (userId) => {
+  // 🔹 Delete user
+  const handleDeleteUser = async (userId) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
-      console.log("deleting user with ID", userId);
+      try {
+        await axios.delete(
+          `${import.meta.env.VITE_BACKEND_URL}/api/admin/users/${userId}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setUsers(users.filter((u) => u._id !== userId));
+      } catch (err) {
+        alert("Error deleting user");
+      }
     }
   };
 

@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { updateProduct } from "../../redux/slices/adminProductSlice"; 
+import { useDispatch } from "react-redux"; 
 
 const EditProductPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const dispatch = useDispatch();
 
   const [productData, setProductData] = useState({
     name: "",
@@ -38,10 +41,19 @@ const EditProductPage = () => {
     console.log(file);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log(productData);
-  };
+ const handleSubmit = (e) => {
+  e.preventDefault();
+
+  dispatch(updateProduct({ id, productData }))
+    .unwrap()
+    .then(() => {
+      alert("✅ Product updated successfully");
+      navigate("/admin/products");
+    })
+    .catch((err) => {
+      alert("❌ Failed to update product: " + err);
+    });
+};
 
   return (
     <div className="max-w-5xl p-6 mx-auto rounded-md shadow-md">
