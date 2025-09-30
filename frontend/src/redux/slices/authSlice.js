@@ -74,33 +74,35 @@ const authSlice = createSlice({
       localStorage.setItem("guestId", state.guestId);
     },
   },
-  extraReducers: (builder) => {
-    builder
-      .addCase(loginUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(loginUser.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload;
-      })
-      .addCase(loginUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload.message;
-      })
-      .addCase(registerUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(registerUser.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload;
-      })
-      .addCase(registerUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload.message;
-      });
-  },
+ extraReducers: (builder) => {
+  builder
+    .addCase(loginUser.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    })
+    .addCase(loginUser.fulfilled, (state, action) => {
+      state.loading = false;
+      state.user = action.payload;
+    })
+    .addCase(loginUser.rejected, (state, action) => {
+      state.loading = false;
+      state.error =
+        action.payload?.message || action.payload?.error || "Login failed";
+    })
+    .addCase(registerUser.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    })
+    .addCase(registerUser.fulfilled, (state, action) => {
+      state.loading = false;
+      state.user = action.payload;
+    })
+    .addCase(registerUser.rejected, (state, action) => {
+      state.loading = false;
+      state.error =
+        action.payload?.message || action.payload?.error || "Registration failed";
+    });
+},
 });
 
 export const { logout, generateNewGuestId } = authSlice.actions;
